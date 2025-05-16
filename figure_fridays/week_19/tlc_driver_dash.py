@@ -4,43 +4,28 @@ import dash_ag_grid as dag
 import plotly.express as px
 import pandas as pd
 
-from helpers import summary_metrics
+from helpers import summary_metrics  # Import from your helpers.py
 
+# Theme dictionary
 THEMES = {
     "Dark": dbc.themes.CYBORG,
     "Light": dbc.themes.FLATLY
 }
 
-df = pd.read_csv("/Users/rishinigam/plotly_scripting/figure_fridays/week_19/dataset/TLC_New_Driver_Application.csv")
+# Load and preprocess data
+df = pd.read_csv("dataset/TLC_New_Driver_Application.csv") 
 df['App Date'] = pd.to_datetime(df['App Date'])
-
-# adding month and week
 df['Month'] = df['App Date'].dt.strftime("%B %Y")
-df["Week"] = df['App Date'].dt.strftime("%U-%Y")
+df['Week'] = df['App Date'].dt.strftime("%U-%Y")
 df['Week_label'] = 'Week' + df['App Date'].dt.strftime("%U, %Y")
 
-#group by monthly counts
-monthly_counts = df.groupby(['Month', 'Status']).size().reset_index(name="Count")
-month_options = [{'label':m , 'value': m} for m in df['Month'].unique()]
+# Dropdown options
+month_options = [{'label': m, 'value': m} for m in df['Month'].unique()]
 
-fig = px.bar(
-    monthly_counts,
-    x='Month',
-    y='Count',
-    color='Status',
-    title='Status Counts by Month',
-    labels={'Count': 'Number of Applications', 'Month': 'Month', 'Status': 'Application Status'},
-    barmode='group'
-)
+# Initialize app
+app = Dash(__name__, external_stylesheets=[dbc.themes.CYBORG])  # default to dark mode
 
-grid = dag.AgGrid(
-    rowData=df.to_dict("records"),
-    columnDefs=[{"field": i, 'filter': True, 'sortable': True} for i in df.columns],
-    dashGridOptions={"pagination": True},
-    columnSize="sizeToFit"
-)
-
-app = Dash(external_stylesheets=[dbc.themes.CYBORG])
+# Layout
 app.layout = html.Div([
     dcc.Store(id='theme-store', data='Dark'),
     dbc.Container([
@@ -73,19 +58,22 @@ app.layout = html.Div([
         html.Hr(),
 
         html.H4("Applications Table", className="mt-3 text-info"),
-        grid
+        html.Div(id='filtered-table')  # Table inserted dynamically
     ], fluid=True)
 ])
 
-# callbacks
+# Callback to update summary, chart, and table based on selected month
 @app.callback(
     Output('summary-metrics', 'children'),
     Output('monthly-status-graph', 'figure'),
+    Output('filtered-table', 'children'),
     Input('month-dropdown', 'value')
 )
-
 def update_dashboard(selected_month):
+    # Filter data
     df_month = df[df['Month'] == selected_month]
+
+    # Compute metrics
     metrics = summary_metrics(df_month)
     summary = html.Div([
         html.H4(f"Summary for {selected_month}"),
@@ -97,7 +85,28 @@ def update_dashboard(selected_month):
         html.P(f"📊 Total Applications: {metrics['total_applications']}"),
     ])
 
-    return summary, fig
+    # Create filtered bar chart
+    filtered_counts = df_month.groupby(['Month', 'Status']).size().reset_index(name='Count')
+    fig = px.bar(
+        filtered_counts,
+        x='Month',
+        y='Count',
+        color='Status',
+        title=f'Status Counts for {selected_month}',
+        labels={'Count': 'Number of Applications', 'Month': 'Month', 'Status': 'Application Status'},
+        barmode='group'
+    )
 
+    # Filtered AgGrid table
+    table = dag.AgGrid(
+        rowData=df_month.to_dict("records"),
+        columnDefs=[{"field": col, 'filter': True, 'sortable': True} for col in df_month.columns],
+        dashGridOptions={"pagination": True},
+        columnSize="sizeToFit"
+    )
+
+    return summary, fig, table
+
+# Run the app
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=True)
