@@ -114,6 +114,7 @@ def update_map(selected_state):
     fig.update_layout(
         template='plotly_dark',
         geo=dict(center=center, projection_scale=zoom),
+        showlegend=False,
         margin={"r": 0, "t": 40, "l": 0, "b": 0}
     )
 
