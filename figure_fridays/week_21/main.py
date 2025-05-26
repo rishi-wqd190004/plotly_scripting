@@ -175,14 +175,29 @@ def update_main_graph(from_year, to_year, selected_country):
     country_data = df[df['Nation'] == selected_country]
     filtered = country_data[(country_data['Year'] >= from_year) & (country_data['Year'] <= to_year)]
 
+    # calculate percentage change in CO2 emissions
+    col = 'Total CO2 emissions from fossil-fuels and cement production (thousand metric tons of C)'
+    filtered['pct_change'] = (filtered[col].pct_change() * 100).round(2)
+
     fig = px.line(
         filtered,
         x='Year',
         y='Total CO2 emissions from fossil-fuels and cement production (thousand metric tons of C)',
+        custom_data=['pct_change'],
         title=f"{selected_country} - CO₂ Emissions ({from_year} to {to_year})",
         labels={'Year': 'Year', 'Total CO2 emissions from fossil-fuels and cement production (thousand metric tons of C)': 'Total CO₂ Emissions'},
     )
+
+    fig.update_traces(
+        hovertemplate=
+        'Year: %{x}<br>' +
+        'Emissions: %{y:,.0f}<br>' +
+        'Change: %{customdata[0]:+.2f}%<extra></extra>'
+    )
+
+    max_val = filtered['Total CO2 emissions from fossil-fuels and cement production (thousand metric tons of C)'].max()
     fig.update_layout(
+        yaxis=dict(range=[0, max_val * 1.1]),
         paper_bgcolor="#2a2a2a",
         plot_bgcolor="#2a2a2a",
         font=dict(color="white")
@@ -230,9 +245,18 @@ def update_subgraphs(from_year, to_year, selected_country, selected_graphs):
                     }]
                 }
             }
+        filtered['pct_change'] = (filtered[column].pct_change() * 100).round(2)
+        fig = px.line(filtered, x='Year', y=column, custom_data=['pct_change'], title=title, labels={'Year': 'Year', column: title})
+        fig.update_traces(
+            hovertemplate=
+            'Year: %{x}<br>' +
+            'Emissions: %{y:,.0f}<br>' +
+            'Change: %{customdata[0]:+.2f}%<extra></extra>'
+        )
 
-        fig = px.line(filtered, x='Year', y=column, title=title, labels={'Year': 'Year', column: title})
+        max_val = filtered[column].max()
         fig.update_layout(
+            yaxis=dict(range=[0, max_val * 1.1]),
             paper_bgcolor="#2a2a2a",
             plot_bgcolor="#2a2a2a",
             font=dict(color="white")
