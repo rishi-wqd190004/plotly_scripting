@@ -4,9 +4,15 @@ from dash import dcc, html, Input, Output
 import dash_bootstrap_components as dbc
 import plotly.express as px
 
+from helper import load_model, load_training_cols, get_combined_df
+
 # Load data
 df = pd.read_excel('../datasets_all/nation.1751_2021.xlsx', engine='openpyxl')
 nations = df['Nation'].unique()
+
+model = load_model()
+training_cols = load_training_cols()
+combined_df = get_combined_df(df, model, training_cols)
 
 # Initialize Dash app
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG], suppress_callback_exceptions=True)
@@ -109,7 +115,14 @@ app.layout = dbc.Container([
         dbc.Col(dcc.Graph(id='solid-graph'), xs=12, md=4),
         dbc.Col(dcc.Graph(id='liquid-graph'), xs=12, md=4),
         dbc.Col(dcc.Graph(id='gas-graph'), xs=12, md=4)
-    ], className="mb-4")
+    ], className="mb-4"),
+
+    dbc.Row([
+    dbc.Col([
+        dcc.Graph(id='combined-graph')
+    ])
+], className="mb-4"),
+
 
 ], fluid=True)
 
@@ -268,6 +281,44 @@ def update_subgraphs(from_year, to_year, selected_country, selected_graphs):
     gas_fig = create_fig("Emissions from gas fuel consumption", "Gas Fuel Emissions", 'gas' in selected_graphs)
 
     return solid_fig, liquid_fig, gas_fig
+
+@app.callback(
+    Output('combined-graph', 'figure'),
+    Input('country-dropdown', 'value')
+)
+def update_combined_graph(selected_country):
+    data = combined_df[combined_df['Nation'] == selected_country].sort_values('Year')
+    data['pct_change'] = data['CO2'].pct_change() * 100
+
+    fig = px.line(
+        data,
+        x='Year',
+        y='CO2',
+        color='Source',
+        line_dash='Source',  # dashed for predicted, solid for actual
+        category_orders={"Source": ["Actual", "Predicted"]},  # order matters
+        custom_data=['pct_change'],
+        title=f"{selected_country} – Actual vs Predicted CO₂ Emissions",
+        markers=True
+    )
+
+    fig.update_traces(
+        hovertemplate=
+        'Year: %{x}<br>' +
+        'Emissions: %{y:,.0f}<br>' +
+        'Change: %{customdata[0]:+.2f}%<extra></extra>'
+    )
+
+    fig.update_layout(
+        yaxis_title='CO₂ Emissions (thousand metric tons of C)',
+        paper_bgcolor="#2a2a2a",
+        plot_bgcolor="#2a2a2a",
+        font=dict(color="white"),
+        legend=dict(title="Data Source"),
+    )
+
+    return fig
+
 
 if __name__ == "__main__":
     app.run(debug=True)
