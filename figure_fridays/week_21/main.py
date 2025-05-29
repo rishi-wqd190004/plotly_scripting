@@ -330,8 +330,6 @@ def update_combined_graph(n_clicks, selected_country, from_year, to_year, predic
     if not selected_country or from_year is None or to_year is None or predict_years_str is None:
         return go.Figure(), error_msg
     
-    combined_df = get_combined_df(df, model, training_cols)
-    
     if from_year > to_year:
         from_year, to_year = to_year, from_year
 
@@ -341,6 +339,8 @@ def update_combined_graph(n_clicks, selected_country, from_year, to_year, predic
     except Exception:
         error_msg = "Invalid input for prediction years. Use comma separated integers like 2022,2023,2024."
         predict_years_input = []
+
+    combined_df = get_combined_df(df, model, training_cols, predict_years_input)
 
     # Filter actual data for country and year range
     actual = combined_df[

@@ -111,14 +111,14 @@ def predict_all_countries(df, training_cols=None, model=None, years_to_predict=[
 
     return pd.concat(all_preds, ignore_index=True)
 
-def get_combined_df(df, model, training_cols):
+def get_combined_df(df, model, training_cols, years_to_predict=[2022,2023,2024]):
     # Historical
     hist = df[['Nation', 'Year', 'Total CO2 emissions from fossil-fuels and cement production (thousand metric tons of C)']].copy()
     hist.rename(columns={'Total CO2 emissions from fossil-fuels and cement production (thousand metric tons of C)': 'CO2'}, inplace=True)
     hist['Source'] = 'Actual'
 
     # Predicted
-    future = predict_all_countries(df, training_cols, model)
+    future = predict_all_countries(df, training_cols, model, years_to_predict)
 
     # Combine
     return pd.concat([hist, future], ignore_index=True)
