@@ -6,7 +6,7 @@ import dash_bootstrap_components as dbc
 import plotly.express as px
 import plotly.graph_objects as go
 
-from helper import load_model, load_training_cols, get_combined_df
+from helper import load_model, load_training_cols, parse_years_input, get_combined_df
 
 # Load data
 df = pd.read_excel('../datasets_all/nation.1751_2021.xlsx', engine='openpyxl')
@@ -14,7 +14,6 @@ nations = df['Nation'].unique()
 
 model = load_model()
 training_cols = load_training_cols()
-combined_df = get_combined_df(df, model, training_cols)
 
 # Initialize Dash app
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG], suppress_callback_exceptions=True)
@@ -314,17 +313,20 @@ def update_subgraphs(from_year, to_year, selected_country, selected_graphs):
         Input('predict-years-input', 'value')
     ]
 )
+
 def update_combined_graph(selected_country, from_year, to_year, predict_years_str):
     error_msg = ""
     if not selected_country or from_year is None or to_year is None:
         return go.Figure(), error_msg
-
+    
+    combined_df = get_combined_df(df, model, training_cols)
+    
     if from_year > to_year:
         from_year, to_year = to_year, from_year
 
     # Parse prediction years input
     try:
-        predict_years_input = [int(y.strip()) for y in predict_years_str.split(',') if y.strip()]
+        predict_years_input = parse_years_input(predict_years_str)
     except Exception:
         error_msg = "Invalid input for prediction years. Use comma separated integers like 2022,2023,2024."
         predict_years_input = []

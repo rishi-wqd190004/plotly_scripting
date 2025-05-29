@@ -10,6 +10,14 @@ def load_training_cols(path='training_cols.txt'):
     with open(path, 'rb') as fp:
         return pickle.load(fp)
     
+def parse_years_input(input_str):
+    try:
+        # Split by comma, strip spaces, convert to int
+        years = [int(year.strip()) for year in input_str.split(',') if year.strip().isdigit()]
+        return sorted(set(years))  # Remove duplicates and sort
+    except Exception:
+        return []
+    
 def predict_future_emissions_v3(selected_country, base_df, mdl, training_cols, years_to_predict=[2022, 2023, 2024]):
     # Filter for the country and sort by year
     country_df = base_df[base_df['Nation'] == selected_country].sort_values('Year')
