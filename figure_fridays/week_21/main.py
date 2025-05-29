@@ -368,6 +368,7 @@ def update_combined_graph(selected_country, from_year, to_year, predict_years_st
         name='Actual',
         line=dict(color='blue', width=2),
         marker=dict(color='blue', size=8),
+        fill='tozeroy',
         hovertemplate=(
             'Year: %{x}<br>'
             'Emissions: %{y:,.0f}<br>'
@@ -387,6 +388,7 @@ def update_combined_graph(selected_country, from_year, to_year, predict_years_st
             mode='lines',
             name='Predicted Trend',
             line=dict(color='yellow', width=2, dash='dash'),
+            fill='tozeroy',
             hoverinfo='skip'
         ))
 
