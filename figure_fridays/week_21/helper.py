@@ -12,9 +12,8 @@ def load_training_cols(path='training_cols.txt'):
     
 def parse_years_input(input_str):
     try:
-        # Split by comma, strip spaces, convert to int
         years = [int(year.strip()) for year in input_str.split(',') if year.strip().isdigit()]
-        return sorted(set(years))  # Remove duplicates and sort
+        return sorted(set(years))
     except Exception:
         return []
     

@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import dash
-from dash import dcc, html, Input, Output
+from dash import dcc, html, Input, Output, State
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import plotly.graph_objects as go
@@ -119,29 +119,34 @@ app.layout = dbc.Container([
     ], className="mb-4"),
 
     dbc.Row([
-        dbc.Col([
-            html.Label("Select Prediction Years (comma separated)"),
-            dcc.Input(
+    dbc.Col([
+        html.Label("Select Prediction Years (comma separated)"),
+        dbc.InputGroup([
+            dbc.Input(
                 id='predict-years-input',
                 type='text',
                 value='2022,2023,2024',
                 placeholder='Enter years separated by commas',
                 style={
-                    'width': '100%',
                     'backgroundColor': '#2a2a2a',
                     'color': 'white',
-                    'border': '1px solid #555',
-                    'padding': '5px'
+                    'border': '1px solid #555'
                 }
             ),
-            html.Div(id='predict-years-error', style={'color': 'red', 'marginTop': '5px'})
-        ], xs=12, md=12)
+            dbc.Button("Predict", id='predict-button', color='info', n_clicks=0)
+        ]),
+        html.Div(id='predict-years-error', style={'color': 'red', 'marginTop': '5px'})
+        ])
     ], className="mb-4"),
 
     dbc.Row([
-        dbc.Col([
-            dcc.Graph(id='combined-graph')
-        ])
+    dbc.Col([
+        dcc.Loading(
+            id="loading-combined-graph",
+            type="circle",   # You can also use 'dot', 'cube', 'graph', etc.
+            children=dcc.Graph(id='combined-graph')
+        )
+    ])
     ]),
 
 ], fluid=True)
@@ -307,16 +312,22 @@ def update_subgraphs(from_year, to_year, selected_country, selected_graphs):
     Output('combined-graph', 'figure'),
     Output('predict-years-error', 'children'),
     [
-        Input('country-dropdown', 'value'),
-        Input('from-year', 'value'),
-        Input('to-year', 'value'),
-        Input('predict-years-input', 'value')
+        Input('predict-button', 'n_clicks')
+    ],
+    [
+        State('country-dropdown', 'value'),
+        State('from-year', 'value'),
+        State('to-year', 'value'),
+        State('predict-years-input', 'value')
     ]
 )
+def update_combined_graph(n_clicks, selected_country, from_year, to_year, predict_years_str):
+    # ctx = dash.callback_context
+    # if not ctx.triggered or ctx.triggered[0]['prop_id'].split('.')[0] != 'predict-button':
+    #     return dash.no_update, ""
 
-def update_combined_graph(selected_country, from_year, to_year, predict_years_str):
     error_msg = ""
-    if not selected_country or from_year is None or to_year is None:
+    if not selected_country or from_year is None or to_year is None or predict_years_str is None:
         return go.Figure(), error_msg
     
     combined_df = get_combined_df(df, model, training_cols)
@@ -363,7 +374,7 @@ def update_combined_graph(selected_country, from_year, to_year, predict_years_st
     fig = go.Figure()
 
     # Actual data (blue line + markers)
-    fig.add_trace(go.Scatter(
+    fig.add_trace(go.Scattergl(
         x=actual['Year'],
         y=actual['CO2'],
         mode='lines+markers',
