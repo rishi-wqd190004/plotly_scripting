@@ -2,11 +2,11 @@ import pickle
 import pandas as pd
 import numpy as np
 
-def load_model(path='rf_co2_mdl.pkl'):
+def load_model(path='figure_fridays/week_21/app/rf_co2_mdl.pkl'):
     with open(path, 'rb') as f:
         return pickle.load(f)
 
-def load_training_cols(path='training_cols.txt'):
+def load_training_cols(path='figure_fridays/week_21/app/training_cols.txt'):
     with open(path, 'rb') as fp:
         return pickle.load(fp)
     

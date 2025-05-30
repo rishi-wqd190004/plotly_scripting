@@ -6,10 +6,10 @@ import dash_bootstrap_components as dbc
 import plotly.express as px
 import plotly.graph_objects as go
 
-from helper import load_model, load_training_cols, parse_years_input, get_combined_df
+from figure_fridays.week_21.app.helper import load_model, load_training_cols, parse_years_input, get_combined_df
 
 # Load data
-df = pd.read_excel('../datasets_all/nation.1751_2021.xlsx', engine='openpyxl')
+df = pd.read_excel('figure_fridays/week_21/app/dataset/nation.1751_2021.xlsx', engine='openpyxl')
 nations = df['Nation'].unique()
 
 model = load_model()
@@ -433,6 +433,7 @@ def update_combined_graph(n_clicks, selected_country, from_year, to_year, predic
 
     return fig, error_msg
 
+server = app.server
 
 if __name__ == "__main__":
     app.run(debug=True)
