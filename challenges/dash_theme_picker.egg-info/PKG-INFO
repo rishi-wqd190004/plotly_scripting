@@ -1,0 +1,12 @@
+Metadata-Version: 2.1
+Name: dash_theme_picker
+Version: 0.0.1
+Summary: A dash plugin that adds a theme picker (light/dark/custom) to Dash apps
+Author: rishiNigam
+Author-email: rishinigam1304@gmail.com
+Classifier: Framework :: Dash
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.7
+Requires-Dist: dash>=3.0.3
