@@ -7,8 +7,8 @@ def get_theme(mode, custom_colors=None):
     elif mode == "custom" and custom_colors:
         return {
             "layout_style": {
-                "backgroundColor": custom_colors["bg"]["hex"],
-                "color": custom_colors["text"]["hex"]
+                "backgroundColor": custom_colors["bg"],
+                "color": custom_colors["text"]
             },
             "plotly_template": "none"  # no preset
         }
