@@ -1,5 +1,9 @@
 .DS_Store
 dataset
+datasets
+.python-version
+.vscode
 __pycache__/
 datasets_all
 rf_co2_mdl.pkl
+3d-salinity-animated.html
